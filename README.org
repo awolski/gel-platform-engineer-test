@@ -1,4 +1,4 @@
-* GEL Platform Engineer AWS/Terraform/Python Test
+* GEL - Platform Engineer - AWS/Terraform/Python Test
 
   Please complete this exercise within 2 days of receipt of this task. To share your solution, send us a link to a repository on the platform of your
   choice (GitHub, or GitLab, or Bitbucket, or something else). Please do not feel that you have to spend the whole time on the exercise, we have
@@ -22,4 +22,10 @@
    - User A can Read/Write to Bucket A
    - User B can Read from Bucket B
 
+** Assumptions
+
+
 ** Approach
+
+
+** Notes / Decisions
