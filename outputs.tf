@@ -3,4 +3,12 @@ output "name_prefix" {
   value       = local.name_prefix
 }
 
-# TODO
+output "bucket_a_id" {
+  description = "Name of bucket A"
+  value       = aws_s3_bucket.a.id
+}
+
+output "bucket_b_id" {
+  description = "Name of bucket B"
+  value       = aws_s3_bucket.a.id
+}
