@@ -8,7 +8,7 @@ locals {
 
   bucket_a_name  = "${local.name_prefix}-bucket-a"
   bucket_b_name  = "${local.name_prefix}-bucket-b"
-  lambda_archive = "${path.module}/lambda/image_processor.zip"
+  lambda_archive = "${path.module}/image_processor.zip"
 
   tags = {
     Namespace = var.namespace
@@ -85,7 +85,7 @@ data "aws_iam_policy_document" "lambda" {
       "s3:GetObject",
     ]
 
-    resources = [aws_s3_bucket.a.arn, "${aws_s3_bucket.a.arn}/*"]
+    resources = ["${aws_s3_bucket.a.arn}/*"]
   }
 
   statement {
@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "lambda" {
       "s3:PutObject"
     ]
 
-    resources = [aws_s3_bucket.b.arn]
+    resources = ["${aws_s3_bucket.b.arn}/*"]
   }
 }
 
@@ -112,9 +112,12 @@ resource "aws_iam_role_policy_attachment" "lambda" {
 }
 
 data "archive_file" "lambda" {
-  type        = "zip"
-  source_file = "${path.module}/lambda/image_processor.py"
-  output_path = local.lambda_archive
+  type = "zip"
+  source_content = templatefile("${path.module}/image_processor.py.tftpl", {
+    target_bucket = aws_s3_bucket.b.id
+  })
+  source_content_filename = "image_processor.py"
+  output_path             = local.lambda_archive
 }
 
 resource "aws_lambda_function" "lambda" {
