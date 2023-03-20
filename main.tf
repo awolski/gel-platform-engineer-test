@@ -33,9 +33,15 @@ resource "aws_s3_bucket" "a" {
   tags = merge(local.tags, { Name = local.bucket_a_name })
 }
 
-# bucket notification
-# iam policy granting bucket access to trigger Lambda
-# ...
+################################################################################
+# Bucket B
+################################################################################
+
+resource "aws_s3_bucket" "b" {
+  bucket = local.bucket_b_name
+
+  tags = merge(local.tags, { Name = local.bucket_b_name })
+}
 
 ################################################################################
 # Lambda
@@ -76,10 +82,10 @@ data "aws_iam_policy_document" "lambda" {
     effect = "Allow"
 
     actions = [
-      "s3:GetObject"
+      "s3:GetObject",
     ]
 
-    resources = [aws_s3_bucket.a.arn]
+    resources = [aws_s3_bucket.a.arn, "${aws_s3_bucket.a.arn}/*"]
   }
 
   statement {
@@ -111,7 +117,7 @@ data "archive_file" "lambda" {
   output_path = local.lambda_archive
 }
 
-resource "aws_lambda_function" "test_lambda" {
+resource "aws_lambda_function" "lambda" {
   filename      = local.lambda_archive
   function_name = "image_processor"
   role          = aws_iam_role.lambda.arn
@@ -131,7 +137,7 @@ resource "aws_lambda_function" "test_lambda" {
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test_lambda.arn
+  function_name = aws_lambda_function.lambda.arn
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.a.arn
 }
@@ -140,26 +146,13 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.a.id
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.test_lambda.arn
+    lambda_function_arn = aws_lambda_function.lambda.arn
     events              = ["s3:ObjectCreated:*"]
     filter_suffix       = ".jpg"
   }
 
   depends_on = [aws_lambda_permission.allow_bucket]
 }
-
-################################################################################
-# Bucket B
-################################################################################
-
-resource "aws_s3_bucket" "b" {
-  bucket = local.bucket_b_name
-
-  tags = merge(local.tags, { Name = local.bucket_b_name })
-}
-
-# ...
-
 
 ################################################################################
 # Supporting Resources
