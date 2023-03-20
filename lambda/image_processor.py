@@ -4,7 +4,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def handler(event, context):
-    result = 'Hello, world!'
-    logger.info('', result)
-    response = {'result': result}
-    return response
+    message = 'Hello {} {}!'.format(event['first_name'], event['last_name'])
+    return {
+        'message' : message
+    }
