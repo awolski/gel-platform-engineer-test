@@ -6,9 +6,11 @@ locals {
   region      = "eu-west-2"
   name_prefix = "${var.namespace}-${var.name}-${random_string.unique_id.id}"
 
-  bucket_a_name  = "${local.name_prefix}-bucket-a"
-  bucket_b_name  = "${local.name_prefix}-bucket-b"
-  lambda_archive = "${path.module}/image_processor.zip"
+  bucket_a_name   = "${local.name_prefix}-bucket-a"
+  bucket_b_name   = "${local.name_prefix}-bucket-b"
+  iam_role_name   = "${local.name_prefix}-lambda-role"
+  iam_policy_name = "${local.name_prefix}-lambda-policy"
+  lambda_name     = "${local.name_prefix}-lambda"
 
   tags = {
     Namespace = var.namespace
@@ -28,7 +30,8 @@ resource "random_string" "unique_id" {
 ################################################################################
 
 resource "aws_s3_bucket" "a" {
-  bucket = local.bucket_a_name
+  bucket        = local.bucket_a_name
+  force_destroy = true
 
   tags = merge(local.tags, { Name = local.bucket_a_name })
 }
@@ -38,7 +41,8 @@ resource "aws_s3_bucket" "a" {
 ################################################################################
 
 resource "aws_s3_bucket" "b" {
-  bucket = local.bucket_b_name
+  bucket        = local.bucket_b_name
+  force_destroy = true
 
   tags = merge(local.tags, { Name = local.bucket_b_name })
 }
@@ -61,7 +65,7 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "lambda" {
-  name               = "iam_for_lambda"
+  name               = local.iam_role_name
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -100,7 +104,7 @@ data "aws_iam_policy_document" "lambda" {
 }
 
 resource "aws_iam_policy" "lambda" {
-  name        = "lambda"
+  name        = local.iam_policy_name
   path        = "/"
   description = "IAM policy for logging from a lambda"
   policy      = data.aws_iam_policy_document.lambda.json
@@ -111,30 +115,32 @@ resource "aws_iam_role_policy_attachment" "lambda" {
   policy_arn = aws_iam_policy.lambda.arn
 }
 
-data "archive_file" "lambda" {
-  type = "zip"
-  source_content = templatefile("${path.module}/image_processor.py.tftpl", {
+resource "local_file" "lambda_function" {
+  content = templatefile("${path.module}/templates/image_processor.py.tftpl", {
     target_bucket = aws_s3_bucket.b.id
   })
-  source_content_filename = "image_processor.py"
-  output_path             = local.lambda_archive
+  filename = "${path.module}/lib/image_processor.py"
+}
+
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_dir  = "${path.module}/lib"
+  output_path = "${path.module}/build/image_processor.zip"
+
+  depends_on = [
+    local_file.lambda_function
+  ]
 }
 
 resource "aws_lambda_function" "lambda" {
-  filename      = local.lambda_archive
-  function_name = "image_processor"
-  role          = aws_iam_role.lambda.arn
-  handler       = "image_processor.handler"
-
+  filename         = data.archive_file.lambda.output_path
+  function_name    = local.lambda_name
+  role             = aws_iam_role.lambda.arn
+  handler          = "image_processor.handler"
   source_code_hash = data.archive_file.lambda.output_base64sha256
-
-  runtime = "python3.9"
-
-  environment {
-    variables = {
-      foo = "bar"
-    }
-  }
+  runtime          = "python3.9"
+  timeout          = 10
+  memory_size      = 256
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
@@ -156,10 +162,3 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   depends_on = [aws_lambda_permission.allow_bucket]
 }
-
-################################################################################
-# Supporting Resources
-################################################################################
-
-# todo
-# ...
