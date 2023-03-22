@@ -2,7 +2,7 @@ version: "3"
 services:
   dev:
     build: .
-    entrypoint: ./dev.sh
+    entrypoint: ./bin/dev.sh
     volumes:
       - .:/home/gel/project:delegated
     environment:
