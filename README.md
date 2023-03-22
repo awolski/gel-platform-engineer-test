@@ -40,8 +40,17 @@ Exec into the container:
 docker-compose exec -it dev bash
 ```
 
-Run `terraform init` and then `terraform apply`. Review the plan and if
-acceptable accept the plan with `yes`.
+Initialise the Terraform workspace.
+
+```bash
+terraform init
+```
+
+Run `terraform apply` or `terraform plan`:
+
+```bash
+terraform apply
+```
 
 ## Assumptions, notes and decisions
 
