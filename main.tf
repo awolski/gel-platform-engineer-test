@@ -12,6 +12,21 @@ locals {
   iam_policy_name = "${local.name_prefix}-lambda-policy"
   lambda_name     = "${local.name_prefix}-lambda"
 
+  users = ["a", "b"]
+
+  bucket_permissions = {
+    bucket_a = {
+      bucket_arn  = aws_s3_bucket.a.arn
+      permissions = ["s3:GetObject", "s3:ListBucket", "s3:PutObject"]
+      user_arn    = aws_iam_user.user["a"].arn
+    },
+    bucket_b = {
+      bucket_arn  = aws_s3_bucket.b.arn
+      permissions = ["s3:GetObject", "s3:ListBucket"]
+      user_arn    = aws_iam_user.user["b"].arn
+    }
+  }
+
   tags = {
     Namespace = var.namespace
     Name      = var.name
@@ -59,4 +74,44 @@ module "image_processor" {
   bucket_b_name           = aws_s3_bucket.b.id
   build_path              = "${path.module}/lib"
   deployment_package_path = "${path.module}/build"
+}
+
+################################################################################
+# Users
+################################################################################
+
+resource "aws_iam_user" "user" {
+  for_each = toset(local.users)
+  name     = "${local.name_prefix}-user-${each.key}"
+}
+
+################################################################################
+# Bucket permissions
+################################################################################
+
+resource "aws_s3_bucket_policy" "bucket_a" {
+  bucket = aws_s3_bucket.a.id
+  policy = data.aws_iam_policy_document.bucket_policy["bucket_a"].json
+}
+
+resource "aws_s3_bucket_policy" "bucket_b" {
+  bucket = aws_s3_bucket.b.id
+  policy = data.aws_iam_policy_document.bucket_policy["bucket_b"].json
+}
+
+data "aws_iam_policy_document" "bucket_policy" {
+  for_each = local.bucket_permissions
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = [each.value.user_arn]
+    }
+    actions = each.value.permissions
+
+    resources = [
+      each.value.bucket_arn,
+      "${each.value.bucket_arn}/*"
+    ]
+  }
 }
