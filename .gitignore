@@ -29,4 +29,7 @@ override.tf.json
 terraform.rc
 
 **/*.zip
+test/*.jpg
+!test/test.jpg
 lib/
+build/

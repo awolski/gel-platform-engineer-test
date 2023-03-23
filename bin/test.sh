@@ -18,6 +18,7 @@ aws s3 cp ${test_dir}/test.jpg s3://${bucket_a}/${target_file}
 
 # Simple loop to wait for processed image to land in bucket b
 while
+  sleep 2
   cleaned_file="$(aws s3 ls ${bucket_b} | awk '{ print $4}' | grep ${target_file})"
   [ cleaned_file == "" ]
 do true; done
