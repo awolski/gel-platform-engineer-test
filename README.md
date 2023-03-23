@@ -1,6 +1,6 @@
 # GEL - Platform Engineer - AWS/Terraform/Python Test
 
-## Quick start
+## Requirements
 
 Local development requires `docker` and `docker-compose` and AWS credentials
 set in your environment.
@@ -23,6 +23,23 @@ On macOS and Linux
 ```
 export VAR_NAME="VALUE"
 ```
+
+## Quick start
+
+To create infrastructure and run a test in two commands:
+
+```bash
+docker-compose run dev apply   # Auto-applies infrastructure
+docker-compose run test        # Runs a simple image upload to bucket_a and download from bucket_b
+```
+
+To destroy resources:
+
+```bash
+docker run dev destroy
+```
+
+## Local development environment
 
 Start a containerised development environment which includes `terraform`,
 `python` and `aws-cli`:
@@ -54,6 +71,7 @@ terraform apply
 
 ## Assumptions, notes and decisions
 
+To be discussed...
 
 ## The Task
 
