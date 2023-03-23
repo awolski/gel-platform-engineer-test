@@ -7,4 +7,12 @@ if [[ ! -d "lib" ]]; then
     pip install pillow -t lib
 fi
 
-tail -f /dev/null
+if [ $# -eq 1 && $1 == "apply" ]; then
+    terraform init
+    terraform apply -auto-approve
+fi
+
+if [ $# -eq 0 || $1 != "apply" ]; then
+    echo "No or invalid arguments supplied. Entering dev mode... "
+    tail -f /dev/null
+else
