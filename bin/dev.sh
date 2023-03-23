@@ -14,6 +14,12 @@ if [[ $# -eq 1 && $1 == "apply" ]]; then
     exit 0
 fi
 
+# If 'destroy' provided, destroy terraform stuff
+if [[ $# -eq 1 && $1 == "destroy" ]]; then
+    terraform destroy -auto-approve
+    exit 0
+fi
+
 # Othwerwise just leave the container running
 echo "No or invalid arguments supplied. Entering dev mode... "
 tail -f /dev/null
