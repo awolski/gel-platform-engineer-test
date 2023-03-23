@@ -36,10 +36,10 @@ docker-compose run test        # Runs a simple image upload to bucket_a and down
 To destroy resources:
 
 ```bash
-docker run dev destroy
+docker-compose run dev destroy
 ```
 
-## Local development environment
+## Local development
 
 Start a containerised development environment which includes `terraform`,
 `python` and `aws-cli`:
