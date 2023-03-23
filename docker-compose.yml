@@ -2,7 +2,18 @@ version: "3"
 services:
   dev:
     build: .
+    image: gel-dev
     entrypoint: ./bin/dev.sh
+    volumes:
+      - .:/home/gel/project:delegated
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+
+  test:
+    image: gel-dev
+    entrypoint: ./bin/test.sh
     volumes:
       - .:/home/gel/project:delegated
     environment:
