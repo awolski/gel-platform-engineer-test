@@ -71,7 +71,27 @@ terraform apply
 
 ## Assumptions, notes and decisions
 
-To be discussed...
+Assumptions
+
+Notes
+
+- Haven't used Python much before. Hit issues with the version of Python AWS
+  Lambda uses.. `bullseye` vs `buster`. And dependency management, how to
+  package up dependencies etc.
+
+Decisions
+
+- Chose not to use modules, though normally would. Reason was to demonstrate
+  use of Terraform
+- Could have built the lambda using a Docker image and ECR. Chose to learn what
+  was involved in building a Python zip.
+- Containerised the development environment to have parity for other developers
+  (reviewers)
+
+
+Issues
+
+- Ran into some issues with
 
 ## The Task
 
